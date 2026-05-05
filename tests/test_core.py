@@ -2,16 +2,16 @@
 
 import os
 import tempfile
-import subprocess
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
 import pytest
 
 from git_finder.core import (
-    find_git_projects,
-    get_today_commits,
     display_projects,
     display_today_commits,
+    find_git_projects,
+    get_today_commits,
 )
 
 
@@ -30,7 +30,7 @@ class TestFindGitProjects:
             # Create a fake .git directory
             git_dir = Path(tmpdir) / "test-repo" / ".git"
             git_dir.mkdir(parents=True)
-            
+
             projects = find_git_projects(tmpdir)
             assert len(projects) == 1
             assert "test-repo" in projects[0]
@@ -42,7 +42,7 @@ class TestFindGitProjects:
             (Path(tmpdir) / "repo1" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "repo2" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "nested" / "repo3" / ".git").mkdir(parents=True)
-            
+
             projects = find_git_projects(tmpdir)
             assert len(projects) == 3
 
@@ -53,7 +53,7 @@ class TestFindGitProjects:
             (Path(tmpdir) / "node_modules" / "package" / ".git").mkdir(parents=True)
             # Create a normal .git (should be found)
             (Path(tmpdir) / "my-project" / ".git").mkdir(parents=True)
-            
+
             projects = find_git_projects(tmpdir)
             assert len(projects) == 1
             assert "my-project" in projects[0]
@@ -71,7 +71,7 @@ class TestFindGitProjects:
             (Path(tmpdir) / "zebra" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "alpha" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "beta" / ".git").mkdir(parents=True)
-            
+
             projects = find_git_projects(tmpdir)
             names = [os.path.basename(p) for p in projects]
             assert names == ["alpha", "beta", "zebra"]
@@ -129,12 +129,12 @@ class TestDisplayFunctions:
             # Create a fake project
             project_path = Path(tmpdir) / "test-project"
             project_path.mkdir()
-            
+
             display_today_commits([str(project_path)])
             captured = capsys.readouterr()
-            
+
             # Should show header with today's date
-            today = datetime.now().strftime('%Y-%m-%d')
+            today = datetime.now().strftime("%Y-%m-%d")
             assert today in captured.out
             assert "test-project" in captured.out
             assert "Total:" in captured.out
@@ -149,11 +149,11 @@ class TestIntegration:
             # Create test structure
             (Path(tmpdir) / "project1" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "project2" / ".git").mkdir(parents=True)
-            
+
             # Find projects
             projects = find_git_projects(tmpdir)
             assert len(projects) == 2
-            
+
             # Get commits (should return empty lists for fake repos)
             for project in projects:
                 commits = get_today_commits(project)

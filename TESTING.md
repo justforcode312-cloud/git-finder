@@ -96,7 +96,7 @@ scripts/
   - Getting today's commits
   - Display functions
   - Error handling
-  
+
 - **test_cli.py**: Tests CLI interface
   - Argument parsing
   - User input prompting

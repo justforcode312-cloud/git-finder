@@ -7,23 +7,26 @@ PATH or installed console scripts. Useful for local development and CI.
 """
 
 import sys
-import os
 import tempfile
 from pathlib import Path
 
 # Add parent directory to path to import git_finder
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from git_finder.core import find_git_projects, get_today_commits, display_today_commits
-from git_finder.cli import main as cli_main
+from git_finder.core import (  # noqa: E402
+    display_today_commits,
+    find_git_projects,
+    get_today_commits,
+)
 
 
 def test_imports():
     """Test that all modules can be imported."""
     print("Testing imports...", end=" ")
     try:
-        import git_finder
-        from git_finder import core, cli
+        import git_finder  # noqa: F401
+        from git_finder import cli, core  # noqa: F401
+
         print("✓ PASSED")
         return True
     except ImportError as e:
@@ -39,10 +42,10 @@ def test_find_git_projects():
             # Create a fake Git repo
             git_dir = Path(tmpdir) / "test-repo" / ".git"
             git_dir.mkdir(parents=True)
-            
+
             # Find projects
             projects = find_git_projects(tmpdir)
-            
+
             if len(projects) == 1 and "test-repo" in projects[0]:
                 print("✓ PASSED")
                 return True
@@ -61,7 +64,7 @@ def test_get_today_commits():
         with tempfile.TemporaryDirectory() as tmpdir:
             # Test with non-Git directory (should return empty list)
             commits = get_today_commits(tmpdir)
-            
+
             if isinstance(commits, list):
                 print("✓ PASSED")
                 return True
@@ -81,12 +84,12 @@ def test_display_functions():
             # Create fake projects
             (Path(tmpdir) / "project1" / ".git").mkdir(parents=True)
             (Path(tmpdir) / "project2" / ".git").mkdir(parents=True)
-            
+
             projects = find_git_projects(tmpdir)
-            
+
             # Test display_today_commits (should not raise exception)
             display_today_commits(projects)
-            
+
             print("✓ PASSED")
             return True
     except Exception as e:
@@ -99,6 +102,7 @@ def test_cli_module():
     print("Testing CLI module...", end=" ")
     try:
         from git_finder.cli import main
+
         if callable(main):
             print("✓ PASSED")
             return True
@@ -115,7 +119,8 @@ def test_package_metadata():
     print("Testing package metadata...", end=" ")
     try:
         import git_finder
-        if hasattr(git_finder, '__version__'):
+
+        if hasattr(git_finder, "__version__"):
             print(f"✓ PASSED (version: {git_finder.__version__})")
             return True
         else:
@@ -132,7 +137,7 @@ def main():
     print("Git Finder - Local Testing Suite")
     print("=" * 70)
     print()
-    
+
     tests = [
         test_imports,
         test_package_metadata,
@@ -141,18 +146,18 @@ def main():
         test_display_functions,
         test_cli_module,
     ]
-    
+
     results = []
     for test_func in tests:
         results.append(test_func())
-    
+
     print()
     print("=" * 70)
     passed = sum(results)
     failed = len(results) - passed
     print(f"Results: {passed}/{len(results)} tests passed")
     print("=" * 70)
-    
+
     if failed > 0:
         print()
         print("❌ Some tests failed!")

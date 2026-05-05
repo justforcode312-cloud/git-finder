@@ -127,7 +127,7 @@ pip uninstall git-finder
 1. **Directory Filtering**: Automatically skips common non-repository directories:
    - `node_modules`, `.venv`, `venv`, `__pycache__`
    - `.tox`, `dist`, `build`, `.eggs`
-   
+
 2. **Timeout Protection**: Git commands have a 5-second timeout to prevent hanging on problematic repositories
 
 3. **Efficient Directory Traversal**: Uses in-place list modification (`dirnames[:]`) for better memory efficiency

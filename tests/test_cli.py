@@ -3,10 +3,11 @@
 import sys
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
+
 import pytest
 
-from git_finder.cli import prompt_for_path, main
+from git_finder.cli import main, prompt_for_path
 
 
 class TestPromptForPath:
@@ -16,20 +17,20 @@ class TestPromptForPath:
         """Test prompting with a valid directory path."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Mock user input
-            monkeypatch.setattr('builtins.input', lambda _: tmpdir)
+            monkeypatch.setattr("builtins.input", lambda _: tmpdir)
             result = prompt_for_path()
             assert result == tmpdir
 
     def test_prompt_with_default(self, monkeypatch):
         """Test using default path when user provides no input."""
         # Mock empty input (use default)
-        monkeypatch.setattr('builtins.input', lambda _: "")
+        monkeypatch.setattr("builtins.input", lambda _: "")
         result = prompt_for_path(".")
         assert result == str(Path(".").resolve())
 
     def test_prompt_with_tilde_expansion(self, monkeypatch):
         """Test that ~ is expanded to home directory."""
-        monkeypatch.setattr('builtins.input', lambda _: "~")
+        monkeypatch.setattr("builtins.input", lambda _: "~")
         result = prompt_for_path()
         assert result == str(Path.home())
 
@@ -38,7 +39,7 @@ class TestPromptForPath:
         with tempfile.TemporaryDirectory() as tmpdir:
             # First return invalid, then valid
             inputs = iter(["/invalid/path/12345", tmpdir])
-            monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+            monkeypatch.setattr("builtins.input", lambda _: next(inputs))
             result = prompt_for_path()
             assert result == tmpdir
 
@@ -48,7 +49,7 @@ class TestMainCLI:
 
     def test_main_with_help(self):
         """Test --help flag."""
-        with patch.object(sys, 'argv', ['git-finder', '--help']):
+        with patch.object(sys, "argv", ["git-finder", "--help"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 0
@@ -56,13 +57,13 @@ class TestMainCLI:
     def test_main_with_list_flag(self):
         """Test --list flag with a valid directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(sys, 'argv', ['git-finder', tmpdir, '--list']):
+            with patch.object(sys, "argv", ["git-finder", tmpdir, "--list"]):
                 # Should not raise an exception
                 main()
 
     def test_main_with_invalid_directory(self):
         """Test with an invalid directory path."""
-        with patch.object(sys, 'argv', ['git-finder', '/invalid/path/12345']):
+        with patch.object(sys, "argv", ["git-finder", "/invalid/path/12345"]):
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
@@ -70,22 +71,20 @@ class TestMainCLI:
     def test_main_with_valid_directory(self):
         """Test with a valid directory path."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(sys, 'argv', ['git-finder', tmpdir]):
+            with patch.object(sys, "argv", ["git-finder", tmpdir]):
                 # Should not raise an exception
                 main()
 
     def test_main_keyboard_interrupt(self, monkeypatch):
         """Test handling of Ctrl+C during execution."""
-        from git_finder import cli
-        
-        with patch.object(sys, 'argv', ['git-finder']):
+        with patch.object(sys, "argv", ["git-finder"]):
             # Mock find_git_projects to raise KeyboardInterrupt
             def mock_find(*args, **kwargs):
                 raise KeyboardInterrupt()
-            
-            monkeypatch.setattr('git_finder.cli.find_git_projects', mock_find)
-            monkeypatch.setattr('git_finder.cli.prompt_for_path', lambda _: '/tmp')
-            
+
+            monkeypatch.setattr("git_finder.cli.find_git_projects", mock_find)
+            monkeypatch.setattr("git_finder.cli.prompt_for_path", lambda _: "/tmp")
+
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 0
@@ -94,8 +93,8 @@ class TestMainCLI:
         """Test interactive mode (no path argument)."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Mock the prompt to return our temp directory
-            monkeypatch.setattr('git_finder.cli.prompt_for_path', lambda _: tmpdir)
-            
-            with patch.object(sys, 'argv', ['git-finder']):
+            monkeypatch.setattr("git_finder.cli.prompt_for_path", lambda _: tmpdir)
+
+            with patch.object(sys, "argv", ["git-finder"]):
                 # Should not raise an exception
                 main()
