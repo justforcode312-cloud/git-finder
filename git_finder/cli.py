@@ -72,6 +72,10 @@ def get_root_path(provided_path: Optional[str]) -> Path:
 
 def main() -> None:
     """Main execution flow."""
+    # Ensure UTF-8 encoding for Unicode support on Windows
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     args = get_args()
 
     try:

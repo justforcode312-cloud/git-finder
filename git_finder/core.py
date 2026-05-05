@@ -85,7 +85,13 @@ def get_today_commits(repo_path: Path) -> List[str]:
 
     try:
         result = subprocess.run(
-            ["git", "log", f"--since={since_date}", "--pretty=format:%h | %s"],
+            [
+                "git",
+                "log",
+                f"--since={since_date}",
+                "--no-merges",
+                "--pretty=format:%h | %s",
+            ],
             cwd=str(repo_path),
             capture_output=True,
             text=True,

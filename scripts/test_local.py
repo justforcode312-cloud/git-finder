@@ -46,7 +46,7 @@ def test_find_git_projects():
             # Find projects
             projects = find_git_projects(tmpdir)
 
-            if len(projects) == 1 and "test-repo" in projects[0]:
+            if len(projects) == 1 and "test-repo" in str(projects[0]):
                 print("PASSED")
                 return True
             else:
@@ -133,6 +133,10 @@ def test_package_metadata():
 
 def main():
     """Run all tests."""
+    # Ensure UTF-8 encoding for Unicode support on Windows
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+
     print("=" * 70)
     print("Git Finder - Local Testing Suite")
     print("=" * 70)
