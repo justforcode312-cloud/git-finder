@@ -6,9 +6,9 @@ This module contains the core logic for finding Git repositories
 and displaying commit information.
 """
 
-import os
 import subprocess
 from datetime import datetime
+from pathlib import Path
 from typing import List
 
 # ============================================================================
@@ -17,14 +17,14 @@ from typing import List
 
 # Directories to skip during search (improves performance)
 SKIP_DIRECTORIES = {
-    "node_modules",  # Node.js dependencies
+    "node_modules",
     ".venv",
-    "venv",  # Python virtual environments
-    "__pycache__",  # Python cache
-    ".tox",  # Python testing
+    "venv",
+    "__pycache__",
+    ".tox",
     "dist",
-    "build",  # Build outputs
-    ".eggs",  # Python eggs
+    "build",
+    ".eggs",
 }
 
 # Git command timeout in seconds
@@ -36,86 +36,68 @@ GIT_TIMEOUT = 5
 # ============================================================================
 
 
-def find_git_projects(root_path: str) -> List[str]:
+def find_git_projects(root_path: str) -> List[Path]:
     """
     Find all Git repositories under a given directory.
-
-    This function walks through the directory tree and identifies
-    folders containing a .git directory, which indicates a Git repository.
 
     Args:
         root_path: The root directory to start searching from
 
     Returns:
-        A sorted list of absolute paths to Git repositories
-
-    Raises:
-        ValueError: If root_path is not a valid directory
-
-    Example:
-        >>> projects = find_git_projects('/home/user/projects')
-        >>> print(projects)
-        ['/home/user/projects/my-app', '/home/user/projects/website']
+        A sorted list of Path objects to Git repositories
     """
-    # Validate input
-    if not os.path.isdir(root_path):
-        raise ValueError(f"'{root_path}' is not a valid directory.")
+    root = Path(root_path).expanduser().resolve()
+    if not root.is_dir():
+        raise ValueError(f"'{root}' is not a valid directory.")
 
     projects = []
 
-    # Walk through directory tree
-    for dirpath, dirnames, _ in os.walk(root_path):
-        # Skip unnecessary directories for better performance
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRECTORIES]
+    def search_recursive(current_dir: Path):
+        # Check if this is a git repo
+        if (current_dir / ".git").is_dir():
+            projects.append(current_dir)
+            return  # Stop searching deeper once a repo is found
 
-        # Check if this directory is a Git repository
-        if ".git" in dirnames:
-            projects.append(dirpath)
-            # Don't search inside this Git repository
-            dirnames[:] = [d for d in dirnames if d != ".git"]
+        try:
+            for item in current_dir.iterdir():
+                if item.is_dir() and item.name not in SKIP_DIRECTORIES:
+                    search_recursive(item)
+        except PermissionError:
+            pass  # Skip directories we can't access
 
+    search_recursive(root)
     return sorted(projects)
 
 
-def get_today_commits(repo_path: str) -> List[str]:
+def get_today_commits(repo_path: Path) -> List[str]:
     """
     Get all commit messages from today for a specific repository.
 
     Args:
-        repo_path: Path to the Git repository
+        repo_path: Path object to the Git repository
 
     Returns:
-        List of commit messages from today (empty if none or on error)
-
-    Example:
-        >>> commits = get_today_commits('/home/user/projects/my-app')
-        >>> print(commits)
-        ['Fix login bug', 'Add new feature']
+        List of commit messages from today (hash - message)
     """
-    try:
-        # Calculate today's date at midnight
-        today = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-        since_date = today.strftime("%Y-%m-%d 00:00:00")
+    # Calculate today's date at midnight
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    since_date = today_start.isoformat()
 
-        # Execute git log command
+    try:
         result = subprocess.run(
-            ["git", "log", f"--since={since_date}", "--pretty=format:%s"],
-            cwd=repo_path,
+            ["git", "log", f"--since={since_date}", "--pretty=format:%h | %s"],
+            cwd=str(repo_path),
             capture_output=True,
             text=True,
-            check=False,
             timeout=GIT_TIMEOUT,
         )
 
-        # Parse results
-        if result.returncode == 0 and result.stdout.strip():
-            return [
-                msg.strip() for msg in result.stdout.strip().split("\n") if msg.strip()
-            ]
-        return []
+        if result.returncode != 0:
+            return []
 
-    except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
-        # Return empty list on any error
+        return [line.strip() for line in result.stdout.splitlines() if line.strip()]
+
+    except (subprocess.TimeoutExpired, FileNotFoundError, subprocess.SubprocessError):
         return []
 
 
@@ -124,86 +106,54 @@ def get_today_commits(repo_path: str) -> List[str]:
 # ============================================================================
 
 
-def display_projects(projects: List[str], root_path: str) -> None:
-    """
-    Display a formatted table of Git projects.
-
-    Args:
-        projects: List of Git project paths
-        root_path: The root directory that was searched
-
-    Output Format:
-        #     Project Name                   Path
-        ----------------------------------------------------------------
-        1     my-project                     /path/to/my-project
-        2     another-project                /path/to/another-project
-    """
-    # Handle empty results
+def display_projects(projects: List[Path], root_path: str) -> None:
+    """Display a formatted table of Git projects."""
     if not projects:
-        print(f"No Git projects found under: {root_path}")
+        print(f"❌ No Git projects found under: {root_path}")
         return
 
-    # Print header
-    print(f"\nFound {len(projects)} Git project(s) under: {root_path}\n")
-    print(f"{'#':<5} {'Project Name':<30} {'Path'}")
-    print("-" * 80)
+    print(f"\n🔍 Found {len(projects)} Git project(s) under: {root_path}\n")
+    print(f"{'#':<5} {'📦 Project Name':<30} {'📍 Path'}")
+    print("─" * 80)
 
-    # Print each project
     for i, path in enumerate(projects, start=1):
-        name = os.path.basename(path) or path
-        print(f"{i:<5} {name:<30} {path}")
+        print(f"{i:<5} {path.name:<30} {path}")
+    print("─" * 80 + "\n")
 
 
-def display_today_commits(projects: List[str]) -> None:
-    """
-    Display today's commits for all projects.
-
-    Shows commits in the format: "project-name - commit message"
-    Also displays a summary of total commits found.
-
-    Args:
-        projects: List of Git project paths to check
-
-    Output Format:
-        ========================================
-        TODAY'S COMMITS (2026-05-05)
-        ========================================
-
-        my-project - Fix login bug
-        my-project - Add new feature
-        website - Update homepage
-        api - No commits
-
-        ========================================
-        Total: 3 commit(s) across 4 project(s)
-        ========================================
-    """
-    # Handle empty project list
+def display_today_commits(projects: List[Path]) -> None:
+    """Display today's commits with an attractive UI."""
     if not projects:
-        print("No Git projects to check for commits.")
+        print("🔍 No Git projects to check for commits.")
         return
 
-    # Print header
-    print(f"\n{'='*80}")
-    print(f"TODAY'S COMMITS ({datetime.now().strftime('%Y-%m-%d')})")
-    print(f"{'='*80}\n")
+    date_str = datetime.now().strftime("%A, %B %d, %Y")
 
-    # Check each project for commits
+    print(f"\n{'⭐' * 40}")
+    print(f"🚀 DAILY GIT ACTIVITY - {date_str.upper()}".center(80))
+    print(f"{'⭐' * 40}\n")
+
     total_commits = 0
+    active_count = 0
+
     for project_path in projects:
-        project_name = os.path.basename(project_path) or project_path
         commits = get_today_commits(project_path)
 
         if commits:
-            # Display each commit
-            for commit_msg in commits:
-                print(f"{project_name} - {commit_msg}")
+            active_count += 1
+            print(f"📂 {project_path.name.upper()}")
+            for commit in commits:
+                print(f"  └─ ✅ {commit}")
             total_commits += len(commits)
+            print()  # Spacer
         else:
-            # Show "No commits" for projects without commits today
-            print(f"{project_name} - No commits")
+            # Show inactive projects subtly
+            print(f"📁 {project_path.name:<30} | 😴 No activity today")
 
-    # Print summary footer
-    print(f"\n{'='*80}")
-    print(f"Total: {total_commits} commit(s) across {len(projects)} project(s)")
-    print(f"{'='*80}")
+    print(f"\n{'─' * 80}")
+    status = "🔥 Productive day!" if total_commits > 0 else "🌱 A quiet day for coding."
+    print(
+        f"📊 SUMMARY: {total_commits} commit(s) in {active_count}/{len(projects)} active project(s)."
+    )
+    print(f"💡 {status}")
+    print(f"{'─' * 80}\n")

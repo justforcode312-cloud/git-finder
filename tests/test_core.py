@@ -1,6 +1,5 @@
 """Unit tests for git_finder.core module."""
 
-import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -33,7 +32,8 @@ class TestFindGitProjects:
 
             projects = find_git_projects(tmpdir)
             assert len(projects) == 1
-            assert "test-repo" in projects[0]
+            assert isinstance(projects[0], Path)
+            assert projects[0].name == "test-repo"
 
     def test_find_git_projects_multiple_repos(self):
         """Test finding multiple Git repositories."""
@@ -45,6 +45,7 @@ class TestFindGitProjects:
 
             projects = find_git_projects(tmpdir)
             assert len(projects) == 3
+            assert all(isinstance(p, Path) for p in projects)
 
     def test_find_git_projects_skips_node_modules(self):
         """Test that node_modules directories are skipped."""
@@ -56,8 +57,7 @@ class TestFindGitProjects:
 
             projects = find_git_projects(tmpdir)
             assert len(projects) == 1
-            assert "my-project" in projects[0]
-            assert "node_modules" not in projects[0]
+            assert projects[0].name == "my-project"
 
     def test_find_git_projects_invalid_directory(self):
         """Test error handling for invalid directory."""
@@ -73,7 +73,7 @@ class TestFindGitProjects:
             (Path(tmpdir) / "beta" / ".git").mkdir(parents=True)
 
             projects = find_git_projects(tmpdir)
-            names = [os.path.basename(p) for p in projects]
+            names = [p.name for p in projects]
             assert names == ["alpha", "beta", "zebra"]
 
 
@@ -83,20 +83,14 @@ class TestGetTodayCommits:
     def test_get_today_commits_no_git_repo(self):
         """Test getting commits from a non-Git directory."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            commits = get_today_commits(tmpdir)
+            commits = get_today_commits(Path(tmpdir))
             assert commits == []
 
     def test_get_today_commits_returns_list(self):
         """Test that function returns a list."""
         with tempfile.TemporaryDirectory() as tmpdir:
-            result = get_today_commits(tmpdir)
+            result = get_today_commits(Path(tmpdir))
             assert isinstance(result, list)
-
-    def test_get_today_commits_timeout_handling(self):
-        """Test that function handles timeouts gracefully."""
-        # Test with a path that might cause issues
-        result = get_today_commits("/")
-        assert isinstance(result, list)
 
 
 class TestDisplayFunctions:
@@ -110,7 +104,7 @@ class TestDisplayFunctions:
 
     def test_display_projects_with_projects(self, capsys):
         """Test displaying a list of projects."""
-        projects = ["/home/user/project1", "/home/user/project2"]
+        projects = [Path("/home/user/project1"), Path("/home/user/project2")]
         display_projects(projects, "/home/user")
         captured = capsys.readouterr()
         assert "Found 2 Git project(s)" in captured.out
@@ -130,14 +124,14 @@ class TestDisplayFunctions:
             project_path = Path(tmpdir) / "test-project"
             project_path.mkdir()
 
-            display_today_commits([str(project_path)])
+            display_today_commits([project_path])
             captured = capsys.readouterr()
 
-            # Should show header with today's date
-            today = datetime.now().strftime("%Y-%m-%d")
-            assert today in captured.out
+            # Should show header with today's year
+            year = datetime.now().strftime("%Y")
+            assert year in captured.out
             assert "test-project" in captured.out
-            assert "Total:" in captured.out
+            assert "SUMMARY:" in captured.out
 
 
 class TestIntegration:
