@@ -27,7 +27,7 @@ if %ERRORLEVEL% EQU 0 (
     echo.
     echo Trying user installation...
     pip install --user .
-    
+
     if %ERRORLEVEL% EQU 0 (
         echo.
         echo ========================================

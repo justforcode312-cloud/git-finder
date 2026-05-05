@@ -28,7 +28,7 @@ else
     echo ""
     echo "Trying user installation..."
     pip install --user .
-    
+
     if [ $? -eq 0 ]; then
         echo ""
         echo "========================================"

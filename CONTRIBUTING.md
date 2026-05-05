@@ -96,7 +96,7 @@ git checkout -b fix/your-bug-fix
 ```bash
 # Test the tool works
 gf . --list
-gf . 
+gf .
 
 # Run any tests
 python scripts/test_install.py
@@ -201,10 +201,10 @@ def find_projects(path: str) -> List[str]:
 def my_function(param: str) -> bool:
     """
     Brief description.
-    
+
     Args:
         param: Description of parameter
-        
+
     Returns:
         Description of return value
     """

@@ -6,6 +6,7 @@ A Python tool to discover Git repositories in a directory tree and display today
 
 - **[Installation Guide](docs/INSTALL.md)** - Detailed installation instructions
 - **[Quick Start](docs/QUICKSTART.md)** - Get started in 30 seconds
+- **[Testing Guide](TESTING.md)** - Comprehensive testing documentation
 - **[Project Structure](PROJECT_STRUCTURE.md)** - Understand the codebase organization
 - **[Code Guide](CODE_GUIDE.md)** - Learn how the code works
 - **[Contributing](CONTRIBUTING.md)** - How to contribute to this project
@@ -126,7 +127,7 @@ pip uninstall git-finder
 1. **Directory Filtering**: Automatically skips common non-repository directories:
    - `node_modules`, `.venv`, `venv`, `__pycache__`
    - `.tox`, `dist`, `build`, `.eggs`
-   
+
 2. **Timeout Protection**: Git commands have a 5-second timeout to prevent hanging on problematic repositories
 
 3. **Efficient Directory Traversal**: Uses in-place list modification (`dirnames[:]`) for better memory efficiency
@@ -191,10 +192,22 @@ This project uses GitHub Actions for continuous integration:
 
 - ✅ **CI Pipeline** - Tests on Python 3.9-3.12 across Windows, Linux, and macOS
 - ✅ **Linting** - Code quality checks with flake8, black, isort, mypy
-- ✅ **Security** - Automated security scanning with Bandit and CodeQL
+- ✅ **Security** - Automated security scanning with Bandit, Safety, and pip-audit
+- ✅ **CodeQL** - Advanced security analysis (requires code scanning to be enabled)
 - ✅ **Release** - Automated package building and GitHub releases
 
 See [.github/workflows/](.github/workflows/) for workflow details.
+
+### Enabling CodeQL (Optional)
+
+CodeQL provides advanced security analysis but requires enabling code scanning in your repository:
+
+1. Go to your repository **Settings**
+2. Navigate to **Security & analysis** (left sidebar)
+3. Under **Code security and analysis**, click **Enable** for **Code scanning**
+4. CodeQL will automatically run on future pushes
+
+**Note:** CodeQL is optional. The project includes alternative security scanning with Bandit that works without additional setup.
 
 ## License
 

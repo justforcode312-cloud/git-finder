@@ -9,7 +9,7 @@ Usage:
     From command line:
         $ git-finder ~/projects
         $ gf ~/projects --list
-        
+
     From Python:
         >>> from git_finder import find_git_projects, display_today_commits
         >>> projects = find_git_projects('/home/user/projects')
@@ -21,9 +21,9 @@ Version: 1.0.0
 """
 
 from .core import (
-    find_git_projects,
     display_projects,
     display_today_commits,
+    find_git_projects,
     get_today_commits,
 )
 

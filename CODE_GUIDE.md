@@ -27,16 +27,16 @@ def main():
     # 1. Parse arguments (~/projects, --list flag, etc.)
     parser = argparse.ArgumentParser(...)
     args = parser.parse_args()
-    
+
     # 2. Get the directory to search
     if args.path:
         root = args.path  # User provided path
     else:
         root = prompt_for_path()  # Ask user interactively
-    
+
     # 3. Find all Git projects
     projects = find_git_projects(root)
-    
+
     # 4. Display results
     if args.list:
         display_projects(projects, root)  # Show project list
@@ -51,10 +51,10 @@ def prompt_for_path(default: str = ".") -> str:
     while True:
         raw = input(f"Enter path [{default}]: ")
         path = os.path.abspath(os.path.expanduser(raw))
-        
+
         if os.path.isdir(path):
             return path  # Valid directory, return it
-        
+
         print("Invalid directory, try again")  # Keep asking
 ```
 
@@ -69,21 +69,21 @@ This file does the heavy lifting.
 ```python
 def find_git_projects(root_path: str) -> List[str]:
     """Find all Git repos under root_path."""
-    
+
     projects = []
-    
+
     # Walk through all directories
     for dirpath, dirnames, _ in os.walk(root_path):
-        
+
         # Skip unnecessary directories (faster!)
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRECTORIES]
-        
+
         # Found a Git repo?
         if ".git" in dirnames:
             projects.append(dirpath)
             # Don't go inside this repo
             dirnames[:] = [d for d in dirnames if d != ".git"]
-    
+
     return sorted(projects)
 ```
 
@@ -99,11 +99,11 @@ def find_git_projects(root_path: str) -> List[str]:
 ```python
 def get_today_commits(repo_path: str) -> List[str]:
     """Get today's commits from a Git repo."""
-    
+
     # Calculate today at midnight
     today = datetime.now().replace(hour=0, minute=0, second=0)
     since_date = today.strftime("%Y-%m-%d 00:00:00")
-    
+
     # Run git command: git log --since="2026-05-05 00:00:00"
     result = subprocess.run(
         ["git", "log", f"--since={since_date}", "--pretty=format:%s"],
@@ -111,11 +111,11 @@ def get_today_commits(repo_path: str) -> List[str]:
         capture_output=True,
         timeout=5  # Don't wait forever!
     )
-    
+
     # Parse the output
     if result.returncode == 0 and result.stdout.strip():
         return result.stdout.strip().split("\n")
-    
+
     return []  # No commits or error
 ```
 
@@ -131,17 +131,17 @@ def get_today_commits(repo_path: str) -> List[str]:
 ```python
 def display_today_commits(projects: List[str]) -> None:
     """Display today's commits for all projects."""
-    
+
     # Print header
     print("TODAY'S COMMITS (2026-05-05)")
-    
+
     total_commits = 0
-    
+
     # Check each project
     for project_path in projects:
         project_name = os.path.basename(project_path)
         commits = get_today_commits(project_path)
-        
+
         if commits:
             # Print each commit
             for commit_msg in commits:
@@ -149,7 +149,7 @@ def display_today_commits(projects: List[str]) -> None:
             total_commits += len(commits)
         else:
             print(f"{project_name} - No commits")
-    
+
     # Print summary
     print(f"Total: {total_commits} commit(s)")
 ```
@@ -172,7 +172,7 @@ from .core import (
 # Public API - what users can import
 __all__ = [
     "find_git_projects",
-    "display_projects", 
+    "display_projects",
     "display_today_commits",
     "get_today_commits",
 ]
@@ -304,10 +304,10 @@ parser.add_argument(
 def display_today_commits(projects: List[str], only_with_commits: bool = False):
     for project_path in projects:
         commits = get_today_commits(project_path)
-        
+
         if only_with_commits and not commits:
             continue  # Skip projects without commits
-        
+
         # ... rest of code
 ```
 

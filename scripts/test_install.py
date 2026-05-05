@@ -9,10 +9,7 @@ def test_command(cmd):
     """Test if a command is available."""
     try:
         result = subprocess.run(
-            [cmd, "--help"],
-            capture_output=True,
-            text=True,
-            timeout=5
+            [cmd, "--help"], capture_output=True, text=True, timeout=5
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
