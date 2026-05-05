@@ -27,10 +27,10 @@ def test_imports():
         import git_finder  # noqa: F401
         from git_finder import cli, core  # noqa: F401
 
-        print("✓ PASSED")
+        print("PASSED")
         return True
     except ImportError as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -47,13 +47,13 @@ def test_find_git_projects():
             projects = find_git_projects(tmpdir)
 
             if len(projects) == 1 and "test-repo" in projects[0]:
-                print("✓ PASSED")
+                print("PASSED")
                 return True
             else:
-                print(f"✗ FAILED: Expected 1 project, found {len(projects)}")
+                print(f"FAILED: Expected 1 project, found {len(projects)}")
                 return False
     except Exception as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -66,13 +66,13 @@ def test_get_today_commits():
             commits = get_today_commits(tmpdir)
 
             if isinstance(commits, list):
-                print("✓ PASSED")
+                print("PASSED")
                 return True
             else:
-                print(f"✗ FAILED: Expected list, got {type(commits)}")
+                print(f"FAILED: Expected list, got {type(commits)}")
                 return False
     except Exception as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -90,10 +90,10 @@ def test_display_functions():
             # Test display_today_commits (should not raise exception)
             display_today_commits(projects)
 
-            print("✓ PASSED")
+            print("PASSED")
             return True
     except Exception as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -104,13 +104,13 @@ def test_cli_module():
         from git_finder.cli import main
 
         if callable(main):
-            print("✓ PASSED")
+            print("PASSED")
             return True
         else:
-            print("✗ FAILED: main is not callable")
+            print("FAILED: main is not callable")
             return False
     except Exception as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -121,13 +121,13 @@ def test_package_metadata():
         import git_finder
 
         if hasattr(git_finder, "__version__"):
-            print(f"✓ PASSED (version: {git_finder.__version__})")
+            print(f"PASSED (version: {git_finder.__version__})")
             return True
         else:
-            print("✗ FAILED: No __version__ attribute")
+            print("FAILED: No __version__ attribute")
             return False
     except Exception as e:
-        print(f"✗ FAILED: {e}")
+        print(f"FAILED: {e}")
         return False
 
 
@@ -160,7 +160,7 @@ def main():
 
     if failed > 0:
         print()
-        print("❌ Some tests failed!")
+        print("[FAIL] Some tests failed!")
         print()
         print("This might indicate:")
         print("  1. The package is not installed correctly")
@@ -170,7 +170,7 @@ def main():
         sys.exit(1)
     else:
         print()
-        print("✅ All tests passed!")
+        print("[PASS] All tests passed!")
         print()
         print("The package is working correctly.")
         print("You can now use: git-finder or gf")
