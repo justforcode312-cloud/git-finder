@@ -6,6 +6,7 @@ A Python tool to discover Git repositories in a directory tree and display today
 
 - **[Installation Guide](docs/INSTALL.md)** - Detailed installation instructions
 - **[Quick Start](docs/QUICKSTART.md)** - Get started in 30 seconds
+- **[Testing Guide](TESTING.md)** - Comprehensive testing documentation
 - **[Project Structure](PROJECT_STRUCTURE.md)** - Understand the codebase organization
 - **[Code Guide](CODE_GUIDE.md)** - Learn how the code works
 - **[Contributing](CONTRIBUTING.md)** - How to contribute to this project
