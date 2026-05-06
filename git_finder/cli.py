@@ -42,6 +42,12 @@ Examples:
         help="List projects only without showing commits",
     )
 
+    parser.add_argument(
+        "--output",
+        "-o",
+        help="Write output to a text file",
+    )
+
     return parser.parse_args()
 
 
@@ -82,10 +88,19 @@ def main() -> None:
         root = get_root_path(args.path)
         projects = find_git_projects(str(root))
 
-        if args.list:
-            display_projects(projects, str(root))
-        else:
-            display_today_commits(projects)
+        output_file = None
+        if args.output:
+            output_file = open(args.output, "w", encoding="utf-8")
+            print(f"📝 Writing output to: {args.output}")
+
+        try:
+            if args.list:
+                display_projects(projects, str(root), file=output_file or sys.stdout)
+            else:
+                display_today_commits(projects, file=output_file or sys.stdout)
+        finally:
+            if output_file:
+                output_file.close()
 
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)

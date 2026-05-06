@@ -7,9 +7,10 @@ and displaying commit information.
 """
 
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, TextIO
 
 # ============================================================================
 # CONSTANTS
@@ -112,32 +113,34 @@ def get_today_commits(repo_path: Path) -> List[str]:
 # ============================================================================
 
 
-def display_projects(projects: List[Path], root_path: str) -> None:
+def display_projects(
+    projects: List[Path], root_path: str, file: TextIO = sys.stdout
+) -> None:
     """Display a formatted table of Git projects."""
     if not projects:
-        print(f"❌ No Git projects found under: {root_path}")
+        print(f"❌ No Git projects found under: {root_path}", file=file)
         return
 
-    print(f"\n🔍 Found {len(projects)} Git project(s) under: {root_path}\n")
-    print(f"{'#':<5} {'📦 Project Name':<30} {'📍 Path'}")
-    print("─" * 80)
+    print(f"\n🔍 Found {len(projects)} Git project(s) under: {root_path}\n", file=file)
+    print(f"{'#':<5} {'📦 Project Name':<30} {'📍 Path'}", file=file)
+    print("─" * 80, file=file)
 
     for i, path in enumerate(projects, start=1):
-        print(f"{i:<5} {path.name:<30} {path}")
-    print("─" * 80 + "\n")
+        print(f"{i:<5} {path.name:<30} {path}", file=file)
+    print("─" * 80 + "\n", file=file)
 
 
-def display_today_commits(projects: List[Path]) -> None:
+def display_today_commits(projects: List[Path], file: TextIO = sys.stdout) -> None:
     """Display today's commits with an attractive UI."""
     if not projects:
-        print("🔍 No Git projects to check for commits.")
+        print("🔍 No Git projects to check for commits.", file=file)
         return
 
     date_str = datetime.now().strftime("%A, %B %d, %Y")
 
-    print(f"\n{'⭐' * 40}")
-    print(f"🚀 DAILY GIT ACTIVITY - {date_str.upper()}".center(80))
-    print(f"{'⭐' * 40}\n")
+    print(f"\n{'⭐' * 40}", file=file)
+    print(f"🚀 DAILY GIT ACTIVITY - {date_str.upper()}".center(80), file=file)
+    print(f"{'⭐' * 40}\n", file=file)
 
     total_commits = 0
     active_count = 0
@@ -147,19 +150,20 @@ def display_today_commits(projects: List[Path]) -> None:
 
         if commits:
             active_count += 1
-            print(f"📂 {project_path.name.upper()}")
+            print(f"📂 {project_path.name.upper()}", file=file)
             for commit in commits:
-                print(f"  └─ ✅ {commit}")
+                print(f"  └─ ✅ {commit}", file=file)
             total_commits += len(commits)
-            print()  # Spacer
+            print(file=file)  # Spacer
         else:
             # Show inactive projects subtly
-            print(f"📁 {project_path.name:<30} | 😴 No activity today")
+            print(f"📁 {project_path.name:<30} | 😴 No activity today", file=file)
 
-    print(f"\n{'─' * 80}")
+    print(f"\n{'─' * 80}", file=file)
     status = "🔥 Productive day!" if total_commits > 0 else "🌱 A quiet day for coding."
     print(
-        f"📊 SUMMARY: {total_commits} commit(s) in {active_count}/{len(projects)} active project(s)."
+        f"📊 SUMMARY: {total_commits} commit(s) in {active_count}/{len(projects)} active project(s).",
+        file=file,
     )
-    print(f"💡 {status}")
-    print(f"{'─' * 80}\n")
+    print(f"💡 {status}", file=file)
+    print(f"{'─' * 80}\n", file=file)
