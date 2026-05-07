@@ -5,18 +5,18 @@ import subprocess
 import sys
 
 
-def test_command(cmd):
+def test_command(cmd: str) -> bool:
     """Test if a command is available."""
     try:
         result = subprocess.run(
-            [cmd, "--help"], capture_output=True, text=True, timeout=5
+            [cmd, "--help"], capture_output=True, text=True, timeout=5, check=False
         )
         return result.returncode == 0
     except (FileNotFoundError, subprocess.TimeoutExpired):
         return False
 
 
-def main():
+def main() -> None:
     """Run installation tests."""
     print("=" * 60)
     print("Git Finder Installation Test")

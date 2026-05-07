@@ -1,7 +1,7 @@
 """Unit tests for git_finder.core module."""
 
 import tempfile
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -117,20 +117,27 @@ class TestDisplayFunctions:
         captured = capsys.readouterr()
         assert "No Git projects to check" in captured.out
 
-    def test_display_today_commits_with_projects(self, capsys):
+    def test_display_today_commits_with_projects(self, capsys, monkeypatch):
         """Test displaying commits for projects."""
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a fake project
             project_path = Path(tmpdir) / "test-project"
             project_path.mkdir()
 
+            # Mock get_today_commits to return a fake commit
+            # This is needed because projects without commits are now hidden
+            monkeypatch.setattr(
+                "git_finder.core.get_today_commits", lambda _: ["feat: test commit"]
+            )
+
             display_today_commits([project_path])
             captured = capsys.readouterr()
 
             # Should show header with today's year
-            year = datetime.now().strftime("%Y")
+            year = datetime.now(timezone.utc).strftime("%Y")
             assert year in captured.out
-            assert "test-project" in captured.out
+            assert "TEST-PROJECT" in captured.out.upper()
+            assert "feat: test commit" in captured.out
             assert "SUMMARY:" in captured.out
 
 

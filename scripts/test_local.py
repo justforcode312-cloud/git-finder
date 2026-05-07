@@ -13,14 +13,14 @@ from pathlib import Path
 # Add parent directory to path to import git_finder
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from git_finder.core import (  # noqa: E402
+from git_finder.core import (
     display_today_commits,
     find_git_projects,
     get_today_commits,
 )
 
 
-def test_imports():
+def test_imports() -> bool:
     """Test that all modules can be imported."""
     print("Testing imports...", end=" ")
     try:
@@ -34,7 +34,7 @@ def test_imports():
         return False
 
 
-def test_find_git_projects():
+def test_find_git_projects() -> bool:
     """Test finding Git projects."""
     print("Testing find_git_projects...", end=" ")
     try:
@@ -49,34 +49,30 @@ def test_find_git_projects():
             if len(projects) == 1 and "test-repo" in str(projects[0]):
                 print("PASSED")
                 return True
-            else:
-                print(f"FAILED: Expected 1 project, found {len(projects)}")
-                return False
+            print(f"FAILED: Expected 1 project, found {len(projects)}")
+            return False
     except Exception as e:
         print(f"FAILED: {e}")
         return False
 
 
-def test_get_today_commits():
+def test_get_today_commits() -> bool:
     """Test getting today's commits."""
     print("Testing get_today_commits...", end=" ")
     try:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Test with non-Git directory (should return empty list)
-            commits = get_today_commits(tmpdir)
+            commits = get_today_commits(Path(tmpdir))
 
             if isinstance(commits, list):
                 print("PASSED")
                 return True
-            else:
-                print(f"FAILED: Expected list, got {type(commits)}")
-                return False
     except Exception as e:
         print(f"FAILED: {e}")
         return False
 
 
-def test_display_functions():
+def test_display_functions() -> bool:
     """Test display functions."""
     print("Testing display functions...", end=" ")
     try:
@@ -97,7 +93,7 @@ def test_display_functions():
         return False
 
 
-def test_cli_module():
+def test_cli_module() -> bool:
     """Test that CLI module can be imported and has main function."""
     print("Testing CLI module...", end=" ")
     try:
@@ -106,15 +102,12 @@ def test_cli_module():
         if callable(main):
             print("PASSED")
             return True
-        else:
-            print("FAILED: main is not callable")
-            return False
     except Exception as e:
         print(f"FAILED: {e}")
         return False
 
 
-def test_package_metadata():
+def test_package_metadata() -> bool:
     """Test package metadata."""
     print("Testing package metadata...", end=" ")
     try:
@@ -123,15 +116,14 @@ def test_package_metadata():
         if hasattr(git_finder, "__version__"):
             print(f"PASSED (version: {git_finder.__version__})")
             return True
-        else:
-            print("FAILED: No __version__ attribute")
-            return False
+        print("FAILED: No __version__ attribute")
+        return False
     except Exception as e:
         print(f"FAILED: {e}")
         return False
 
 
-def main():
+def main() -> None:
     """Run all tests."""
     # Ensure UTF-8 encoding for Unicode support on Windows
     if hasattr(sys.stdout, "reconfigure"):
@@ -151,7 +143,7 @@ def main():
         test_cli_module,
     ]
 
-    results = []
+    results: list[bool] = []
     for test_func in tests:
         results.append(test_func())
 

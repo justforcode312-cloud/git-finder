@@ -54,9 +54,11 @@ class TestMainCLI:
 
     def test_main_with_list_flag(self):
         """Test --list flag with a valid directory."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            with patch.object(sys, "argv", ["git-finder", tmpdir, "--list"]):
-                main()
+        with (
+            tempfile.TemporaryDirectory() as tmpdir,
+            patch.object(sys, "argv", ["git-finder", tmpdir, "--list"]),
+        ):
+            main()
 
     def test_main_with_invalid_directory(self):
         """Test with an invalid directory path."""

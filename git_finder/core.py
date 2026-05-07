@@ -10,9 +10,9 @@ import subprocess
 import sys
 import threading
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional, TextIO
+from typing import Any, Optional, TextIO
 
 # ============================================================================
 # CONSTANTS
@@ -47,7 +47,7 @@ CLR_RESET = "\033[0m"
 # ============================================================================
 
 
-def find_git_projects(root_path: str) -> List[Path]:
+def find_git_projects(root_path: str) -> list[Path]:
     """
     Find all Git repositories under a given directory.
 
@@ -63,7 +63,7 @@ def find_git_projects(root_path: str) -> List[Path]:
 
     projects = []
 
-    def search_recursive(current_dir: Path):
+    def search_recursive(current_dir: Path) -> None:
         # Check if this is a git repo
         if (current_dir / ".git").is_dir():
             projects.append(current_dir)
@@ -80,7 +80,7 @@ def find_git_projects(root_path: str) -> List[Path]:
     return sorted(projects)
 
 
-def get_today_commits(repo_path: Path) -> List[str]:
+def get_today_commits(repo_path: Path) -> list[str]:
     """
     Get all commit messages from today for a specific repository.
 
@@ -91,7 +91,9 @@ def get_today_commits(repo_path: Path) -> List[str]:
         List of commit messages from today (hash - message)
     """
     # Calculate today's date at midnight
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = datetime.now(timezone.utc).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
     since_date = today_start.isoformat()
 
     try:
@@ -107,6 +109,7 @@ def get_today_commits(repo_path: Path) -> List[str]:
             capture_output=True,
             text=True,
             timeout=GIT_TIMEOUT,
+            check=False,
         )
 
         if result.returncode != 0:
@@ -126,12 +129,12 @@ def get_today_commits(repo_path: Path) -> List[str]:
 class Loader:
     """A simple animated loader for CLI operations."""
 
-    def __init__(self, message: str, file: TextIO = sys.stdout):
+    def __init__(self, message: str, file: Optional[TextIO] = None):
         self.message = message
-        self.file = file
+        self.file = file or sys.stdout
         self.stopped = False
         self._thread: Optional[threading.Thread] = None
-        self.is_tty = hasattr(file, "isatty") and file.isatty()
+        self.is_tty = hasattr(self.file, "isatty") and self.file.isatty()
 
     def _animate(self) -> None:
         chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
@@ -154,7 +157,12 @@ class Loader:
             self.file.flush()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Any,
+    ) -> None:
         self.stopped = True
         if self._thread:
             self._thread.join()
@@ -170,9 +178,10 @@ class Loader:
 
 
 def display_projects(
-    projects: List[Path], root_path: str, file: TextIO = sys.stdout
+    projects: list[Path], root_path: str, file: Optional[TextIO] = None
 ) -> None:
     """Display a formatted table of Git projects."""
+    file = file or sys.stdout
     if not projects:
         print(f"ERROR: No Git projects found under: {root_path}", file=file)
         return
@@ -188,8 +197,9 @@ def display_projects(
     print("─" * 80 + "\n", file=file)
 
 
-def display_today_commits(projects: List[Path], file: TextIO = sys.stdout) -> None:
+def display_today_commits(projects: list[Path], file: Optional[TextIO] = None) -> None:
     """Display today's commits with an attractive UI."""
+    file = file or sys.stdout
     if not projects:
         print("INFO: No Git projects to check for commits.", file=file)
         return
@@ -199,7 +209,7 @@ def display_today_commits(projects: List[Path], file: TextIO = sys.stdout) -> No
     def style(text: str, code: str) -> str:
         return f"{code}{text}{CLR_RESET}" if is_tty else text
 
-    date_str = datetime.now().strftime("%A, %B %d, %Y")
+    date_str = datetime.now(timezone.utc).strftime("%A, %B %d, %Y")
 
     print(f"\n{style('━' * 80, CLR_CYAN)}", file=file)
     print(style(f"{'DAILY GIT ACTIVITY':^80}", CLR_BOLD + CLR_CYAN), file=file)

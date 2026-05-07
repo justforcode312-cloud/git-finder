@@ -6,12 +6,18 @@ This module handles the command-line interface for the Git Finder tool.
 """
 
 import argparse
+import contextlib
 import os
 import sys
 from pathlib import Path
 from typing import Optional
 
-from .core import Loader, display_projects, display_today_commits, find_git_projects
+from git_finder.core import (
+    Loader,
+    display_projects,
+    display_today_commits,
+    find_git_projects,
+)
 
 # ============================================================================
 # CLI HELPERS
@@ -92,19 +98,18 @@ def main() -> None:
         with Loader("Searching for Git repositories"):
             projects = find_git_projects(str(root))
 
-        output_file = None
-        if args.output:
-            output_file = open(args.output, "w", encoding="utf-8")
-            print(f"Writing output to: {args.output}")
+        with contextlib.ExitStack() as stack:
+            output_file = None
+            if args.output:
+                output_file = stack.enter_context(
+                    Path(args.output).open("w", encoding="utf-8")
+                )
+                print(f"Writing output to: {args.output}")
 
-        try:
             if args.list:
                 display_projects(projects, str(root), file=output_file or sys.stdout)
             else:
                 display_today_commits(projects, file=output_file or sys.stdout)
-        finally:
-            if output_file:
-                output_file.close()
 
     except ValueError as e:
         print(f"Error: {e}", file=sys.stderr)
