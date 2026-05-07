@@ -6,11 +6,12 @@ This module handles the command-line interface for the Git Finder tool.
 """
 
 import argparse
+import os
 import sys
 from pathlib import Path
 from typing import Optional
 
-from .core import display_projects, display_today_commits, find_git_projects
+from .core import Loader, display_projects, display_today_commits, find_git_projects
 
 # ============================================================================
 # CLI HELPERS
@@ -78,20 +79,23 @@ def get_root_path(provided_path: Optional[str]) -> Path:
 
 def main() -> None:
     """Main execution flow."""
-    # Ensure UTF-8 encoding for Unicode support on Windows
+    # Ensure UTF-8 encoding and ANSI support on Windows
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if os.name == "nt":
+        os.system("")
 
     args = get_args()
 
     try:
         root = get_root_path(args.path)
-        projects = find_git_projects(str(root))
+        with Loader("Searching for Git repositories"):
+            projects = find_git_projects(str(root))
 
         output_file = None
         if args.output:
             output_file = open(args.output, "w", encoding="utf-8")
-            print(f"📝 Writing output to: {args.output}")
+            print(f"Writing output to: {args.output}")
 
         try:
             if args.list:
