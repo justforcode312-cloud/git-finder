@@ -19,6 +19,7 @@ A Python tool to discover Git repositories in a directory tree and display today
 - 📊 Optional: Display found projects in a formatted table
 - ⚡ Optimized to skip common non-repository directories
 - 🛡️ Robust error handling and timeout protection
+- 💾 **Write to file** - Save results to a text file for reporting
 
 ## Installation
 
@@ -73,6 +74,13 @@ gf ~/projects
 # Use --list flag to show projects without commits
 git-finder --list
 gf /path/to/search --list
+```
+
+### Save Results to File
+```bash
+# Use --output or -o flag to save results to a text file
+git-finder --output results.txt
+gf ~/projects -o activity_report.txt
 ```
 
 ### Get Help
